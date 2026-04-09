@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI Code Refactoring Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 1200px;
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .panel h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 200px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #f0f2f5;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-refactor {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-refactor:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-refactor:active {
+            transform: translateY(0);
+        }
+
+        .btn-clear {
+            background: #e9ecef;
+            color: #555;
+        }
+
+        .btn-clear:hover {
+            background: #dee2e6;
+        }
+
+        .btn-download {
+            background: #28a745;
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-download:hover {
+            background: #218838;
+        }
+
+        .output-panel {
+            grid-column: 1 / -1;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab-btn {
+            padding: 10px 15px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            display: block;
+        }
+
+        .issues-list {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .issue-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 3px;
+            font-size: 0.95em;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .metric {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #667eea;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .diff-section {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .diff-section h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .input-method {
+            display: none;
+        }
+
+        .input-method.active {
+            display: block;
+        }
+
+        input[type="file"] {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        input[type="file"]:hover {
+            border-color: #667eea;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI Code Refactoring Tool</h1>
+            <p>Analyze, refactor, and validate your Python code instantly</p>
+        </header>
+
+        <div class="content">
+            <!-- Input Panel -->
+            <div class="panel">
+                <h2>📝 Input Code</h2>
+                
+                <!-- Input Method Tabs -->
+                <div class="tabs" style="margin-bottom: 20px;">
+                    <button class="tab-btn active" onclick="switchInputMethod('paste')">📝 Paste Code</button>
+                    <button class="tab-btn" onclick="switchInputMethod('upload')">📤 Upload File</button>
+                </div>
+
+                <!-- Paste Code Tab -->
+                <div id="pasteInputContainer" class="input-method active">
+                    <div class="input-group">
+                        <label>Paste your Python code:</label>
+                        <textarea id="originalCode" placeholder="def calc(x, y):&#10;    return x + y"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-refactor" onclick="analyzeAndRefactor()">🔄 Refactor</button>
+                        <button class="btn-clear" onclick="clearAll()">Clear</button>
+                    </div>
+                </div>
+
+                <!-- Upload File Tab -->
+                <div id="uploadInputContainer" class="input-method">
+                    <div class="input-group">
+                        <label>📤 Upload a Python file:</label>
+                        <input type="file" id="fileUpload" accept=".py" onchange="handleFileUpload()">
+                        <div id="fileInfo" style="margin-top: 10px; font-size: 0.9em; color: #666;"></div>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-refactor" onclick="analyzeAndRefactor()">🔄 Refactor</button>
+                        <button class="btn-clear" onclick="clearAll()">Clear</button>
+                    </div>
+                </div>
+
+                <div id="loadingIndicator" class="loading">
+                    <div class="spinner"></div>
+                    <p>Processing code...</p>
+                </div>
+            </div>
+
+            <!-- Output Panel (Spans both columns) -->
+            <div class="panel output-panel">
+                <h2>📊 Analysis & Results</h2>
+
+                <div id="statusMessage" class="status"></div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('analysis')">Issues Found</button>
+                    <button class="tab-btn" onclick="switchTab('refactored')">Refactored Code</button>
+                    <button class="tab-btn" onclick="switchTab('diff')">Changes</button>
+                </div>
+
+                <!-- Analysis Tab -->
+                <div id="analysis" class="tab-content active">
+                    <div id="issuesContainer"></div>
+                    <div class="metrics" id="metricsContainer" style="display: none;">
+                        <div class="metric">
+                            <div class="metric-value" id="issueCount">0</div>
+                            <div class="metric-label">Issues Found</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="codeLines">0</div>
+                            <div class="metric-label">Lines of Code</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="validStatus">✅</div>
+                            <div class="metric-label">Syntax Valid</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Refactored Code Tab -->
+                <div id="refactored" class="tab-content">
+                    <div id="refactoredCodeContainer"></div>
+                    <button class="btn-download" onclick="downloadCode()">💾 Download Refactored Code</button>
+                </div>
+
+                <!-- Diff Tab -->
+                <div id="diff" class="tab-content">
+                    <div id="diffContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRefactoredCode = '';
+        let currentFileName = 'refactored_code.py';
+
+        function switchInputMethod(method) {
+            // Hide all input methods
+            document.querySelectorAll('.input-method').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tabs')[0].querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            // Show selected method
+            if (method === 'paste') {
+                document.getElementById('pasteInputContainer').classList.add('active');
+            } else if (method === 'upload') {
+                document.getElementById('uploadInputContainer').classList.add('active');
+            }
+            event.target.classList.add('active');
+        }
+
+        function handleFileUpload() {
+            const fileInput = document.getElementById('fileUpload');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            // Validate file type
+            if (!file.name.endsWith('.py')) {
+                alert('Please upload a .py file');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('originalCode').value = e.target.result;
+                currentFileName = `refactored_${file.name}`;
+                document.getElementById('fileInfo').textContent = `✅ Loaded: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+            };
+            reader.onerror = function() {
+                alert('Error reading file');
+            };
+            reader.readAsText(file);
+        }
+
+        async function analyzeAndRefactor() {
+            const code = document.getElementById('originalCode').value;
+
+            if (!code.trim()) {
+                showStatus('Please enter or upload some code first', 'error');
+                return;
+            }
+
+            showLoading(true);
+            clearStatus();
+
+            try {
+                // Step 1: Analyze
+                const analyzeResponse = await fetch('http://localhost:5000/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+
+                if (!analyzeResponse.ok) throw new Error('Analysis failed');
+                const analyzeData = await analyzeResponse.json();
+                const issues = analyzeData.issues;
+
+                // Step 2: Refactor
+                const refactorResponse = await fetch('http://localhost:5000/api/refactor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, issues })
+                });
+
+                if (!refactorResponse.ok) throw new Error('Refactoring failed');
+                const refactorData = await refactorResponse.json();
+                currentRefactoredCode = refactorData.refactored_code;
+                const isValid = refactorData.is_valid;
+
+                // Step 3: Get diff
+                const diffResponse = await fetch('http://localhost:5000/api/diff', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ original: code, refactored: currentRefactoredCode })
+                });
+
+                if (!diffResponse.ok) throw new Error('Diff generation failed');
+                const diffData = await diffResponse.json();
+
+                // Display results
+                displayAnalysis(issues, code, isValid);
+                displayRefactoredCode(currentRefactoredCode, isValid);
+                displayDiff(diffData.diff);
+
+                if (issues.length === 0) {
+                    showStatus('✅ No issues found!', 'success');
+                } else {
+                    showStatus(`✅ Found ${issues.length} issue(s) and refactored successfully!`, 'success');
+                }
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+                console.error(error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayAnalysis(issues, code, isValid) {
+            const container = document.getElementById('issuesContainer');
+            const metricsContainer = document.getElementById('metricsContainer');
+
+            if (issues.length === 0) {
+                container.innerHTML = '<div class="status success">✅ No issues found in your code!</div>';
+            } else {
+                container.innerHTML = issues.map((issue, i) =>
+                    `<div class="issue-item">⚠️ ${i + 1}. ${issue}</div>`
+                ).join('');
+            }
+
+            // Update metrics
+            document.getElementById('issueCount').textContent = issues.length;
+            document.getElementById('codeLines').textContent = code.split('\n').length;
+            document.getElementById('validStatus').textContent = isValid ? '✅ Valid' : '❌ Invalid';
+            metricsContainer.style.display = 'grid';
+        }
+
+        function displayRefactoredCode(code, isValid) {
+            const container = document.getElementById('refactoredCodeContainer');
+            const statusClass = isValid ? 'success' : 'error';
+            const statusText = isValid ? '✅ Syntax Valid' : '❌ Syntax Error';
+
+            container.innerHTML = `
+                <div class="status ${statusClass}">${statusText}</div>
+                <pre>${escapeHtml(code)}</pre>
+            `;
+        }
+
+        function displayDiff(diffText) {
+            const container = document.getElementById('diffContainer');
+
+            if (!diffText || diffText.trim().length === 0) {
+                container.innerHTML = '<div class="status info">No changes made (code already optimized)</div>';
+            } else {
+                container.innerHTML = `<pre>${escapeHtml(diffText)}</pre>`;
+            }
+        }
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showStatus(message, type) {
+            const el = document.getElementById('statusMessage');
+            el.textContent = message;
+            el.className = `status ${type}`;
+        }
+
+        function clearStatus() {
+            document.getElementById('statusMessage').textContent = '';
+            document.getElementById('statusMessage').className = 'status';
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
+        }
+
+        function clearAll() {
+            document.getElementById('originalCode').value = '';
+            document.getElementById('fileUpload').value = '';
+            document.getElementById('fileInfo').textContent = '';
+            document.getElementById('issuesContainer').innerHTML = '';
+            document.getElementById('refactoredCodeContainer').innerHTML = '';
+            document.getElementById('diffContainer').innerHTML = '';
+            document.getElementById('metricsContainer').style.display = 'none';
+            clearStatus();
+            currentRefactoredCode = '';
+            currentFileName = 'refactored_code.py';
+        }
+
+        function downloadCode() {
+            if (!currentRefactoredCode) {
+                alert('No refactored code to download');
+                return;
+            }
+
+            const blob = new Blob([currentRefactoredCode], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentFileName;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Allow Tab key in textarea
+        document.getElementById('originalCode').addEventListener('keydown', function (e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 1;
+            }
+        });
+    </script>
+</body>
+</html>
